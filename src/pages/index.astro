@@ -1,0 +1,73 @@
+---
+import Layout from '#layouts/Layout.astro';
+import Leaf from '#components/Leaf.astro';
+import Header from '#components/Header.astro';
+import Footer from '#components/Footer.astro';
+---
+
+<Layout title="bushel">
+	<header role="banner" itemscope="itemscope">
+		<Header />
+	</header>
+	<main>
+		<div class="landing-container">
+			<div class="landing">
+				<img src="/bushel-logo-fullsize.png" />
+				<div></div>
+				<p>
+					Hi, glad you stopped by! This is <span style="color: var(--bushel-primary);">bushel</span>, a digital gardening application for when you don't want the structure of a blog.
+				</p>
+			</div>
+		</div>
+		<!-- theres some uglyness here because the astro vsc extension yells at me otherwise -->
+		<Leaf leaf_id="home" />
+	</main>
+	<footer >
+		<Footer />
+	</footer>
+</Layout>
+
+<style>
+	footer {
+		margin-top: auto;
+	}
+	body {
+		display: flex;
+		flex-direction: column;
+	}
+	main {
+        max-width: 700px;
+		/* background-color: aqua; */
+		margin: auto;
+	}
+	.landing-container {
+		height: 70vh;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+	.landing {
+		max-height: 70vh;
+		text-align: center;
+	}
+	.landing img {
+		max-height: 90%;
+		max-width: 100%;
+		margin-bottom: -8%;
+	}
+	.landing div {
+		margin: auto;
+		width: 50pt;
+		border-top: 2px solid var(--bg-border);
+	}
+	.landing p {
+		margin: auto;
+		margin-top: 1rem;
+		width: 80%;
+	}
+	@media (width <= 768px) {
+		main {
+			padding: 0 5vw 0 5vw;
+		}
+	}
+</style>

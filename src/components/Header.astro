@@ -1,0 +1,177 @@
+---
+let show_login = false, show_logout = false, show_edit = false, show_save = false;
+const { leaf_id } = Astro.params;
+
+import { getSession } from 'auth-astro/server';
+const session = await getSession(Astro.request);
+
+const edit_override = false;
+// not sure about this yet, will leave till later
+if (session) {
+    show_login = false;
+    show_logout = true;
+    if (leaf_id) {
+        show_edit = true;
+    }
+}
+if (edit_override) {
+    show_edit = false;
+    show_save = true;
+}
+---
+
+<div class="nav-bar">
+    <div class="element">
+        <a href="/">
+            <img class="logo-img" src="/bushel-icon-small.png" />
+            <span class="logo-text">bushel</span>
+        </a>
+    </div>
+    <span class="flex-spacer"></span>
+    <ul class="no-print element">
+        {session ?
+        <button class="button" id="logout">
+            <span>logout</span>
+        </button>
+        <a class="icon" href=`/edit/${ leaf_id ?? '' }`>
+            <svg viewBox="-20 -20 200 200" xmlns="http://www.w3.org/2000/svg"><path d="M0 160 0 130 90 40 120 70 30 160Z"/><path d="M130 0 160 30 140 50 110 20Z"/></svg>
+        </a>
+        <a class="icon" href="/edit">
+            <svg viewBox="-20 -20 200 200" xmlns="http://www.w3.org/2000/svg"><path d="M80 0 80 160"/><path d="M0 80 160 80"/></svg>
+        </a>
+        :
+        <button class="button" id="login">
+            <span>login</span>
+        </button>
+        }
+    </ul>
+</div>
+<script>
+    const { signIn, signOut } = await import("auth-astro/client");
+    const login_button = document.querySelector<HTMLElement>("#login");
+    if (login_button) {
+        login_button.onclick = () => {
+            login_button.classList.add("loading");
+            signIn("github");
+        }
+    }
+    const logout_button = document.querySelector<HTMLElement>("#logout");
+    if (logout_button) {
+        logout_button.onclick = () => {
+            logout_button.classList.add("loading");
+            signOut();
+        }
+    }
+</script>
+<style>
+    a {
+        color: black;
+        text-decoration: none;
+    }
+    .nav-bar {
+        padding-left: 5vw;
+        padding-right: 5vw;
+        position: relative;
+        display: flex;
+        align-items: stretch;
+        height: 64px;
+        min-height: 64px;
+        justify-content: space-between;
+        border-bottom: 2px solid var(--bg-border);
+        font-size: 12pt;
+    }
+    .logo-img {
+        vertical-align: middle;
+        height: 64px;
+    }
+    .logo-text {
+        padding: 0.5rem;
+        display: inline-block;
+        vertical-align: middle;
+        line-height: normal;
+        font-size: 20pt;
+        font-weight: 200;
+    }
+    .element {
+        display: flex;
+        align-items: stretch;
+    }
+    .flex-spacer {
+        display: block;
+        flex-grow: 1;
+        flex-shrink: 1;
+    }
+    button {
+        background: none;
+        color: inherit;
+        border: none;
+        padding: 0;
+        font: inherit;
+        cursor: pointer;
+        outline: inherit;
+    }
+    .button {
+        position: relative;
+        padding: 0 10pt;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 2px solid var(--bg-border);
+        border-radius: 50px;
+    }
+    .button:hover {
+        border-color: var(--bg-border-highlight)
+    }
+    .loading {
+        color: transparent;
+    }
+    .loading:hover {
+        background-color: transparent !important;
+    }
+    .loading::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin: auto;
+        border: 4px solid var(--bg-border);
+        border-top-color: var(--bg-border-highlight);
+        border-radius: 50%;
+        animation: button-loading-spinner 1s ease infinite;
+    }
+    .icon {
+        margin-left: 12pt;
+    }
+    .icon svg {
+        margin: auto;
+        width: 18pt;
+        height: 100%;
+        path {
+            /* fill: var(--text-subtle); */
+            fill: none;
+            stroke: var(--text-inactive);
+            stroke-width: 13;
+            stroke-linejoin: round;
+        }
+    }
+    @keyframes button-loading-spinner {
+        from {
+            transform: rotate(0turn);
+        }
+
+        to {
+            transform: rotate(1turn);
+        }
+    }
+    @media print
+    {    
+        .no-print, .no-print *
+        {
+            display: none !important;
+        }
+    }
+</style>

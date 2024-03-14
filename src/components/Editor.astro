@@ -1,0 +1,311 @@
+---
+import type { LeafDetails } from "#database/leaf.ts";
+import { GetLeafMetadata, GetLeafSourceString } from "#database/leaves.ts";
+
+interface Props {
+    leaf_id?: string;
+    metadata?: LeafDetails;
+}
+
+const { metadata } = Astro.props;
+
+const new_leaf_id = "new-leaf";
+
+const leaf_metadata = metadata ?? {
+    id: "new-leaf",
+    path: "/new/",
+    title: "untitled leaf",
+    created_by: undefined,
+    last_modified_date: new Date(),
+    backlinks: undefined,
+};
+const back_path =
+    leaf_metadata.id == new_leaf_id ? "/" : "/leaves/" + leaf_metadata.id;
+const combined_path =
+    leaf_metadata.id == new_leaf_id
+        ? leaf_metadata.path + leaf_metadata.id
+        : leaf_metadata.path;
+const content =
+    leaf_metadata.id != new_leaf_id
+        ? await GetLeafSourceString(leaf_metadata?.id!)
+        : "";
+---
+
+<div class="page-content" data-id={leaf_metadata?.id}>
+    <div class="pathline">
+        <div class="block">
+            <a class="button" id="back" href={back_path}>
+                <span>close</span>
+            </a>
+        </div>
+        <div class="input-block">
+            <input
+                type="text"
+                id="path"
+                placeholder={combined_path}
+                value={combined_path}
+            />
+        </div>
+        <div class="block">
+            <button class="button" id="save">
+                <span>save</span>
+            </button>
+        </div>
+    </div>
+    <input
+        type="text"
+        id="title"
+        placeholder={leaf_metadata.title}
+        value={leaf_metadata.title}
+    />
+    <div id="editor"></div>
+    <div hidden id="content">
+        {content}
+    </div>
+</div>
+
+<script>
+    //<script define:vars={{details_obj: details, content_str: content}}>
+    /*
+    import { EditorState } from "prosemirror-state";
+    import { EditorView } from "prosemirror-view";
+    import {
+        schema,
+        defaultMarkdownParser,
+        defaultMarkdownSerializer,
+    } from "prosemirror-markdown";
+    import { bushelSetup } from "#prosemirror/index.ts";
+    */
+    
+    import { MarkdownExtension } from "prosemirror-remark";
+    import { EditorState } from "prosemirror-state";
+    import { ProseMirrorUnified } from "prosemirror-unified";
+    import { EditorView } from "prosemirror-view";
+
+    const pmu = new ProseMirrorUnified([new MarkdownExtension()]);
+    /*
+    const pmu = new ProseMirrorUnified([
+        new CustomMarkdownExtension()
+    ]);
+    */
+
+    const view = new EditorView(
+        // The element to use for the editor
+        document.querySelector("#editor")!,
+        {
+            state: EditorState.create({
+                // Set the initial content of the editor from sourceMarkdown
+                doc: pmu.parse(
+                    document.querySelector("#content")!.textContent ?? "",
+                ),
+                plugins: [pmu.inputRulesPlugin(), pmu.keymapPlugin()],
+                schema: pmu.schema(),
+            }),
+            // Log (in the browser console) the current content in markdown on every update
+            dispatchTransaction: (tr): void => {
+                view.updateState(view.state.apply(tr));
+                //console.log(pmu.serialize(view.state.doc));
+            },
+        },
+    );
+
+    const page_content = document.querySelector<HTMLElement>(".page-content")!;
+    const back_button = document.querySelector<HTMLElement>("#back")!;
+    const save_button = document.querySelector<HTMLElement>("#save")!;
+    const path_input = document.querySelector<HTMLInputElement>("#path")!;
+    const title_input = document.querySelector<HTMLInputElement>("#title")!;
+    var isSaving = false;
+    /*
+    const view = new EditorView(document.querySelector("#editor"), {
+        state: EditorState.create({
+            //doc: DOMParser.fromSchema(schema).parse(document.querySelector("#content")!),
+            doc: defaultMarkdownParser.parse(
+                document.querySelector("#content")!.textContent ?? "",
+            )!,
+            plugins: bushelSetup({ schema: schema }),
+            //schema: schema,
+        }),
+        dispatchTransaction: (tr): void => {
+            view.updateState(view.state.apply(tr));
+        }
+    });
+    */
+    
+
+    function saveOnClick(event: MouseEvent) {
+        if (isSaving) return;
+        isSaving = true;
+        save_button.classList.add("loading");
+        let id = page_content.dataset.id;
+        let path = path_input.value;
+        if (!path.startsWith("/")) {
+            path = "/" + path;
+        }
+        if (id == "new-leaf") {
+            // i wish astro could put ssred consts in here
+            id = path_input.value.substring(
+                path_input.value.lastIndexOf("/") + 1,
+            );
+            path = path_input.value.substring(
+                0,
+                path_input.value.lastIndexOf("/") + 1,
+            );
+        }
+        if (!path.endsWith("/")) {
+            path = path + "/";
+        }
+        let title = title_input.value;
+        //let content = defaultMarkdownSerializer.serialize(view.state.doc);
+        let content = pmu.serialize(view.state.doc);
+        console.log(`saving ${id}...`);
+        fetch(`/api/${id}/metadata.json`, {
+            method: "POST",
+            body: JSON.stringify({
+                id: id,
+                path: path,
+                title: title,
+                created_by: undefined,
+                last_modified_date: undefined,
+                backlinks: [],
+            }),
+            headers: { "Content-type": "application/json; charset=UTF-8" },
+        })
+            .then((res) => {
+                if (res.ok) return res.json();
+                throw new Error(`metadata api got ${res.status}!`);
+            })
+            .then((metadata) => {
+                // update id and path
+                page_content.dataset.id = metadata.id;
+                path_input.value = metadata.path;
+                back_button.setAttribute("href", `/leaves/${metadata.id}`);
+                fetch(`/api/${metadata.id}/source.json`, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        content: content,
+                    }),
+                    headers: {
+                        "Content-type": "application/json; charset=UTF-8",
+                    },
+                })
+                    .then((res) => {
+                        if (res.ok) return res.text();
+                        throw new Error(`source api got ${res.status}!`);
+                    })
+                    .then((res) => {
+                        console.log(res);
+                        save_button.classList.remove("loading");
+                        isSaving = false;
+                    });
+            });
+    }
+
+    save_button.addEventListener("click", saveOnClick);
+</script>
+
+<style>
+    button {
+        background: none;
+        color: inherit;
+        border: none;
+        padding: 0;
+        margin: 0;
+        font: inherit;
+        cursor: pointer;
+        outline: inherit;
+    }
+    input {
+        border: 2px solid var(--bg-border);
+        border-radius: 10pt;
+        box-sizing: border-box;
+    }
+    .button {
+        /* margin: 0 0 0 18pt; */
+        position: relative;
+        padding: 4pt 10pt;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 2px solid var(--bg-border);
+        border-radius: 50px;
+    }
+    .button:hover {
+        border-color: var(--bg-border-highlight);
+    }
+    .loading {
+        color: transparent;
+    }
+    .loading:hover {
+        background-color: transparent !important;
+    }
+    .loading::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin: auto;
+        border: 4px solid var(--bg-border);
+        border-top-color: var(--bg-border-highlight);
+        border-radius: 50%;
+        animation: button-loading-spinner 1s ease infinite;
+    }
+    #save {
+        width: 56pt;
+        margin-left: 24pt;
+        border: 2px solid var(--bushel-primary);
+    }
+    #save:hover {
+        border: 2px solid var(--bushel-primary);
+        background-color: var(--bushel-primary);
+    }
+    #back {
+        color: var(--text-primary);
+        text-decoration: none;
+        width: 36pt;
+        margin-right: 24pt;
+    }
+    .pathline {
+        /* padding: 10pt;
+        border: 2px solid var(--bg-border);
+        border-radius: 10pt; */
+        margin-bottom: 36pt;
+        display: flex;
+    }
+    .input-block {
+        flex: 1;
+    }
+    .input-block input {
+        width: 100%;
+        padding: 6pt;
+    }
+    #title {
+        font-size: 2em;
+        padding: 10pt;
+        width: 100%;
+        margin-bottom: 10pt;
+    }
+    .block {
+    }
+    :global(.ProseMirror) {
+        padding: 10pt;
+        border: 2px solid var(--bg-border);
+        border-radius: 10pt;
+    }
+    .page-content {
+        margin-bottom: 20vh;
+        margin-top: 6pt;
+    }
+    @keyframes button-loading-spinner {
+        from {
+            transform: rotate(0turn);
+        }
+
+        to {
+            transform: rotate(1turn);
+        }
+    }
+</style>

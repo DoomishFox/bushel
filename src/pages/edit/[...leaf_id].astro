@@ -1,0 +1,51 @@
+---
+import Layout from "#layouts/Layout.astro";
+import Header from "#components/Header.astro";
+import Footer from "#components/Footer.astro";
+import Editor from "#components/Editor.astro";
+import { GetLeafMetadata } from "#database/leaves.ts";
+import { getSession } from "auth-astro/server";
+
+const session = await getSession(Astro.request);
+if (!session) return Astro.redirect("/404");
+
+const { leaf_id } = Astro.params;
+const leaf_metadata = leaf_id ? await GetLeafMetadata(leaf_id) : undefined;
+---
+
+<Layout title={`${leaf_metadata?.title}`}>
+	<header role="banner" itemscope="itemscope">
+		<Header />
+	</header>
+	<main>
+		<div>
+			<Editor metadata={leaf_metadata} />
+		</div>
+	</main>
+	<footer>
+		<Footer />
+	</footer>
+</Layout>
+
+<style>
+	footer {
+		margin-top: auto;
+	}
+	body {
+		display: flex;
+		flex-direction: column;
+	}
+	main {
+		display: flex;
+		justify-content: center;
+	}
+	main div {
+		width: 100%;
+		max-width: 700px;
+	}
+	@media (width <= 768px) {
+		main {
+			padding: 0 5vw 0 5vw;
+		}
+	}
+</style>

@@ -1,0 +1,53 @@
+---
+import Layout from '#layouts/Layout.astro';
+import Leaf from '#components/Leaf.astro';
+import Header from '#components/Header.astro';
+import Footer from '#components/Footer.astro';
+import Pathline from '#components/Pathline.astro';
+import { GetLeafMetadata } from '#database/leaves.ts';
+
+const { leaf_id } = Astro.params;
+const leaf_metadata = await GetLeafMetadata(leaf_id!);
+if (!leaf_metadata) {
+    console.log("no valid leaf");
+    return Astro.redirect('/404');
+}
+---
+
+<Layout title={`${leaf_metadata?.title}`}>
+	<header role="banner" itemscope="itemscope">
+		<Header />
+	</header>
+	<main>
+		<div>
+			<Pathline path={leaf_metadata.path}/>
+			<Leaf metadata={leaf_metadata} />
+		</div>
+	</main>
+	<footer >
+		<Footer />
+	</footer>
+</Layout>
+
+<style>
+	footer {
+		margin-top: auto;
+	}
+	body {
+		display: flex;
+		flex-direction: column;
+	}
+	main {
+		display: flex;
+		justify-content: center;
+	}
+	main div {
+		width: 100%;
+        max-width: 700px;
+	}
+	@media (width <= 768px) {
+		main {
+			padding: 0 5vw 0 5vw;
+		}
+	}
+</style>

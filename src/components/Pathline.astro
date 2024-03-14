@@ -1,0 +1,33 @@
+---
+interface Props {
+    path: string;
+}
+const {path} = Astro.props;
+const pathline_elements = path.split('/').filter(e => e) ?? [];
+---
+
+<div class="pathline">
+    {pathline_elements.map((element) => (
+        <span>{element}</span>
+    ))}
+    <!-- <span>path</span><span>to</span><span>leaf</span> -->
+</div>
+
+<style>
+	.pathline {
+        color: var(--text-subtle);
+        font-size: 0.875rem;
+		margin-top: 6pt;
+		margin-bottom: 36pt;
+        overflow-x: scroll;
+    }
+	.pathline span {
+		padding: 0;
+		margin: 0;
+	}
+	.pathline span::after {
+		content: "/";
+		padding: 0 10pt;
+		color: var(--text-inactive);
+	}
+</style>
