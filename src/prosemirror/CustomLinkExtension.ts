@@ -1,108 +1,116 @@
-import type { Link, LinkData, Text } from "mdast";
-import { toggleMark, wrapIn } from "prosemirror-commands";
+import type { Link, Text } from "mdast";
+import { toggleMark } from "prosemirror-commands";
 import type { InputRule } from "prosemirror-inputrules";
-import { wrappingInputRule } from "prosemirror-inputrules";
 import type {
-    DOMOutputSpec,
-    MarkSpec,
-    Mark,
-    Node as ProseMirrorNode,
-    Schema,
-    NodeSpec,
+  DOMOutputSpec,
+  Mark,
+  MarkSpec,
+  Node as ProseMirrorNode,
+  Schema,
 } from "prosemirror-model";
-import { wrapInList } from "prosemirror-schema-list";
 import type { Command } from "prosemirror-state";
-import { NodeExtension, MarkInputRule, createProseMirrorNode } from "prosemirror-unified";
+import { MarkExtension, MarkInputRule } from "prosemirror-unified";
+import { LinkInputRule } from "./LinkInputRule";
 
 /**
  * @public
  */
-export class CustomLinkExtension extends NodeExtension<Link> {
-    public override unistNodeName(): "link" {
-        return "link";
-    }
+export class LinkExtension extends MarkExtension<Link> {
+  public override unistNodeName(): "link" {
+    return "link";
+  }
 
-    public override proseMirrorNodeName(): string {
-        return "link";
-    }
+  public override proseMirrorMarkName(): string {
+    return "link";
+  }
 
-    public override proseMirrorNodeSpec(): NodeSpec {
-        return {
-            inline: true,
-            attrs: { text: {}, href: { default: null } },
-            inclusive: false,
-            group: "inline",
-            parseDOM: [
-                {
-                    getAttrs(dom: Node | string): {
-                        href: string | null;
-                        text: string | null;
-                    } {
-                        return {
-                            text: (dom as HTMLElement).textContent,
-                            href: (dom as HTMLElement).getAttribute("href"),
-                        };
-                    },
-                    tag: "a[href]",
-                },
-            ],
-            toDOM(node: ProseMirrorNode): DOMOutputSpec {
-                return ["a", node.attrs];
-            },
-        };
-    }
-
-    public override proseMirrorInputRules(
-        proseMirrorSchema: Schema<string, string>,
-    ): Array<InputRule> {
+  public override proseMirrorMarkSpec(): MarkSpec {
+    return {
+      attrs: { href: {}, title: { default: null } },
+      inclusive: false,
+      parseDOM: [
+        {
+          //tag: "a[href]",
+          tag: "span.md-url",
+          getAttrs(dom: Node | string): {
+            href: string | null;
+            title: string | null;
+          } {
+            console.log(dom as HTMLElement)
+            return {
+              href: (dom as HTMLElement).querySelector("[data-href]")?.textContent ?? "",
+              title: (dom as HTMLElement).querySelector("[data-title]")?.textContent ?? null,
+            };
+          },
+        },
+      ],
+      toDOM(node: Mark): DOMOutputSpec {
+        console.log(node);
+        const href: (string | any)[] = ["span", { "data-href": true }, node.attrs.href];
+        if (node.attrs.title) {
+            const title = ["span", { "data-title": true }, node.attrs.title]
+            href.push(title);
+        }
         return [
-            wrappingInputRule(
-                /\[(.+)\]\(([^ ]+)(?: \"(.+)\")?\)$/,
-                proseMirrorSchema.nodes[this.proseMirrorNodeName()],
-                (match) => ({ href: match[2], title: match[1] }),
-            ),
+            "span",
+            { class: "md-url" },
+            ["span", { "data-text": true }, 0],
+            href,
         ];
-    }
+        //return ["a", node.attrs];
+      },
+    };
+  }
 
+  public override proseMirrorInputRules(
+    proseMirrorSchema: Schema<string, string>,
+  ): Array<InputRule> {
+    return [
+      new LinkInputRule(
+        /\[(.+?)\]\(([^ ]+)(?: \"(.+?)\")?\)([\s\S])$/,
+        proseMirrorSchema.marks[this.proseMirrorMarkName()],
+      ),
+    ];
+  }
 
+  public override proseMirrorKeymap(
+    proseMirrorSchema: Schema<string, string>,
+  ): Record<string, Command> {
+    const markType = proseMirrorSchema.marks[this.proseMirrorMarkName()];
+    return {
+      "Mod-h": toggleMark(markType),
+      "Mod-H": toggleMark(markType),
+    };
+  }
 
-    public override proseMirrorKeymap(
-        proseMirrorSchema: Schema<string, string>,
-      ): Record<string, Command> {
-        return {
-          "Ctrl-h": wrapIn(
-            proseMirrorSchema.nodes[this.proseMirrorNodeName()],
-          ),
-        };
-      }
+  public override unistNodeToProseMirrorNodes(
+    node: Link,
+    proseMirrorSchema: Schema<string, string>,
+    convertedChildren: Array<ProseMirrorNode>,
+  ): Array<ProseMirrorNode> {
+    return convertedChildren.map((child) =>
+      child.mark(
+        child.marks.concat([
+          proseMirrorSchema.marks[this.proseMirrorMarkName()].create({
+            href: node.url,
+            title: node.title,
+          }),
+        ]),
+      ),
+    );
+  }
 
-    public override unistNodeToProseMirrorNodes(
-        node: Link,
-        proseMirrorSchema: Schema<string, string>,
-        convertedChildren: Array<ProseMirrorNode>,
-    ): Array<ProseMirrorNode> {
-        return createProseMirrorNode(
-            this.proseMirrorNodeName(),
-            proseMirrorSchema,
-            convertedChildren,
-            {
-                href: node.url,
-                text: node.text,
-            },
-        );
-    }
-
-    public override proseMirrorNodeToUnistNodes(
-        node: ProseMirrorNode,
-        convertedChildren: Array<Text>,
-    ): Array<Link> {
-        return [
-            {
-                type: this.unistNodeName(),
-                url: node.attrs.href as string,
-                ...(node.attrs.text !== null && { title: node.attrs.text as string }),
-                children: convertedChildren,
-            }
-        ];
-    }
+  public override processConvertedUnistNode(
+    convertedNode: Text,
+    originalMark: Mark,
+  ): Link {
+    return {
+      type: this.unistNodeName(),
+      url: originalMark.attrs.href as string,
+      ...(originalMark.attrs.title !== null && {
+        title: originalMark.attrs.title as string,
+      }),
+      children: [convertedNode],
+    };
+  }
 }

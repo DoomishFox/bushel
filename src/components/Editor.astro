@@ -1,6 +1,7 @@
 ---
 import type { LeafDetails } from "#database/leaf.ts";
 import { GetLeafMetadata, GetLeafSourceString } from "#database/leaves.ts";
+import "prosemirror-view/style/prosemirror.css";
 
 interface Props {
     leaf_id?: string;
@@ -76,18 +77,15 @@ const content =
     } from "prosemirror-markdown";
     import { bushelSetup } from "#prosemirror/index.ts";
     */
-    
-    import { MarkdownExtension } from "prosemirror-remark";
+
+    //import { MarkdownExtension } from "prosemirror-remark";
+    import { CustomMarkdownExtension } from "#prosemirror/CustomMarkdownExtension.ts";
     import { EditorState } from "prosemirror-state";
     import { ProseMirrorUnified } from "prosemirror-unified";
     import { EditorView } from "prosemirror-view";
 
-    const pmu = new ProseMirrorUnified([new MarkdownExtension()]);
-    /*
-    const pmu = new ProseMirrorUnified([
-        new CustomMarkdownExtension()
-    ]);
-    */
+    //const pmu = new ProseMirrorUnified([new MarkdownExtension()]);
+    const pmu = new ProseMirrorUnified([new CustomMarkdownExtension()]);
 
     const view = new EditorView(
         // The element to use for the editor
@@ -130,7 +128,6 @@ const content =
         }
     });
     */
-    
 
     function saveOnClick(event: MouseEvent) {
         if (isSaving) return;
@@ -288,12 +285,59 @@ const content =
         width: 100%;
         margin-bottom: 10pt;
     }
-    .block {
-    }
     :global(.ProseMirror) {
         padding: 10pt;
         border: 2px solid var(--bg-border);
         border-radius: 10pt;
+        blockquote {
+            margin: 1.5em 0;
+            padding: 0 1.25em;
+            /* background-color: var(--bg-highlight); */
+            border: 2px solid var(--bg-border);
+            border-radius: 6pt;
+        }
+        span.md-url {
+            span[data-text]::before {
+                color: var(--text-inactive);
+                content: "[";
+            }
+            span[data-text]::after {
+                color: var(--text-inactive);
+                content: "]";
+            }
+            span[data-href]::before {
+                color: var(--text-inactive);
+                content: "(";
+            }
+            span[data-href]::after {
+                color: var(--text-inactive);
+                content: ")";
+            }
+            span[data-title]::before {
+                color: var(--text-inactive);
+                content: " \"";
+            }
+            span[data-title]::after {
+                color: var(--text-inactive);
+                content: "\"";
+            }
+        }
+        strong::before {
+            color: var(--text-inactive);
+            content: "**";
+        }
+        strong::after {
+            color: var(--text-inactive);
+            content: "**";
+        }
+        em::before {
+            color: var(--text-inactive);
+            content: "*";
+        }
+        em::after {
+            color: var(--text-inactive);
+            content: "*";
+        }
     }
     .page-content {
         margin-bottom: 20vh;

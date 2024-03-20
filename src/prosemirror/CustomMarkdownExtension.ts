@@ -25,7 +25,9 @@ import {
     TextExtension,
     UnorderedListExtension,
 } from "prosemirror-remark";
-import { CustomLinkExtension } from "#prosemirror/CustomLinkExtension.ts";
+import { LinkExtension } from "#prosemirror/CustomLinkExtension.ts";
+//import { LinkExtension } from "#prosemirror/SimpleLinkExtension.ts";
+//import { BoldExtension } from "#prosemirror/CustomBoldExtension.ts";
 
 /**
  * @public
@@ -46,9 +48,7 @@ export class CustomMarkdownExtension extends Extension {
         new ImageReferenceExtension(),
         new InlineCodeExtension(),
         new ItalicExtension(),
-        //new LinkExtension(),
-        //new LinkReferenceExtension(),
-        new CustomLinkExtension(),
+        new LinkExtension(),
         new ListItemExtension(),
         new OrderedListExtension(),
         new RootExtension(),
