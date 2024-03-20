@@ -1,6 +1,6 @@
 ---
 import type { LeafDetails } from "#database/leaf.ts";
-import { GetLeafMetadata, GetLeafSourceString } from "#database/leaves.ts";
+import { GetLeafSourceString } from "#database/leaves.ts";
 import "prosemirror-view/style/prosemirror.css";
 
 interface Props {
@@ -129,7 +129,7 @@ const content =
     });
     */
 
-    function saveOnClick(event: MouseEvent) {
+    function saveOnClick() {
         if (isSaving) return;
         isSaving = true;
         save_button.classList.add("loading");

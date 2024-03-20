@@ -9,7 +9,7 @@ export default defineConfig({
 		}),
 	],
 	callbacks: {
-		async signIn({ user, account, profile, email, credentials }) {
+		async signIn({ user, /*account, profile, email, credentials*/ }) {
 			if (user.id == import.meta.env.GITHUB_ADMIN_USER_ID) {
 				return true;
 			}

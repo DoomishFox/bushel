@@ -1,12 +1,13 @@
 ---
-let show_login = false, show_logout = false, show_edit = false, show_save = false;
+//let show_login = false, show_logout = false, show_edit = false, show_save = false;
 const { leaf_id } = Astro.params;
 
 import { getSession } from 'auth-astro/server';
 const session = await getSession(Astro.request);
 
-const edit_override = false;
+//const edit_override = false;
 // not sure about this yet, will leave till later
+/*
 if (session) {
     show_login = false;
     show_logout = true;
@@ -18,6 +19,7 @@ if (edit_override) {
     show_edit = false;
     show_save = true;
 }
+*/
 ---
 
 <div class="nav-bar">

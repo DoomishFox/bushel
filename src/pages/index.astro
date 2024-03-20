@@ -1,8 +1,11 @@
 ---
-import Layout from '#layouts/Layout.astro';
-import Leaf from '#components/Leaf.astro';
-import Header from '#components/Header.astro';
-import Footer from '#components/Footer.astro';
+import Layout from '../layouts/Layout.astro';
+import Leaf from '../components/Leaf.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+// yeah i dont think astro supports the #* import pattern
+// stuff you can define in package.json. it works with
+// `npm run dev` but not `npm run build`
 ---
 
 <Layout title="bushel">

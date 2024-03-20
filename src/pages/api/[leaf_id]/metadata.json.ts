@@ -3,7 +3,7 @@ import { GetLeafMetadata, SetLeafMetadata } from '#database/leaves.ts';
 import { isLeafDetails, type LeafDetails } from '#database/leaf.ts';
 import { getSession } from 'auth-astro/server';
 
-export const GET: APIRoute = async ({ params, request }) => {
+export const GET: APIRoute = async ({ params, /*request*/ }) => {
   const id = params.leaf_id;
   return new Response(
     JSON.stringify(await GetLeafMetadata(id!))

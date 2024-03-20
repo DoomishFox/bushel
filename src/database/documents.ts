@@ -1,6 +1,5 @@
 import * as fs from 'node:fs/promises';
 import * as fssync from 'node:fs';
-import { pathToFileURL } from 'node:url';
 
 type Result<T> = T | undefined;
 
@@ -104,7 +103,7 @@ class Documents {
 
   async index(key: string, location: string, index: string): Promise<NamedIndex> {
     if (this.currentIndexPromise) {
-      const _ = await this.currentIndexPromise;
+      await this.currentIndexPromise;
       this.currentIndexPromise = undefined;
     }
     const target_index = this.indicies.find(indx => indx.name == index);
@@ -206,7 +205,7 @@ class Documents {
     const filepath = expanded_key + '.document'
     try {
       const handle = await fs.open(filepath, 'w') // open w - will replace file
-      const _ =  await handle.writeFile(document, this.encoding);
+      await handle.writeFile(document, this.encoding);
       handle.close();
     } catch (error) {
       console.error(error);
@@ -237,7 +236,7 @@ class Documents {
     let expanded_key = CombinePath(this.searchLocation, key);
     const filepath = expanded_key + '.document'
     try {
-      const _ = fs.rm(filepath);
+      fs.rm(filepath);
       const parent_path = PathParent(expanded_key);
       this.cleandirs(parent_path);
     } catch (error) {

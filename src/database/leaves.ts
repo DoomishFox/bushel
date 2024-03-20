@@ -1,5 +1,5 @@
 import { documents, CombinePath } from '#database/documents.ts';
-import { isLeafDetails, type Leaf, type LeafDetails } from './leaf';
+import { type LeafDetails } from './leaf';
 
 import remarkHtml from 'remark-html';
 import remarkParse from 'remark-parse';
