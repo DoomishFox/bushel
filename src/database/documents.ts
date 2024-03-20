@@ -347,6 +347,6 @@ function PathLastElement(path: string) {
 }
 
 export const documents = new Documents({
-  name: import.meta.env.DB_NAME,
-  location: import.meta.env.DB_LOCATION,
+  name: process.env.DB_NAME,
+  location: process.env.DB_LOCATION,
 });
