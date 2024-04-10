@@ -346,7 +346,8 @@ function PathLastElement(path: string) {
   return path.substring(path.lastIndexOf("/") + 1);
 }
 
+// TODO: make this an astro integration
 export const documents = new Documents({
-  name: process.env.DB_NAME,
-  location: process.env.DB_LOCATION,
+  name: process.env.DB_NAME ?? import.meta.env.DB_NAME,
+  location: process.env.DB_LOCATION ?? import.meta.env.DB_LOCATION,
 });
