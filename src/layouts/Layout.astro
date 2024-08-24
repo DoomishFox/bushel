@@ -10,11 +10,16 @@ const { title } = Astro.props;
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta name="description" content="Bushel Revision 2" />
+        <meta name="description" content="bushel - a digital garden" />
         <meta name="viewport" content="width=device-width" />
         <!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg" /> -->
         <link rel="icon" type="image/png" href="/icon-transparent.png" />
         <meta name="generator" content={Astro.generator} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content="bushel - moon's digital garden" />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={Astro.url} />
+        <meta property="og:image" content="/bushel-opengraph.png" />
         <title>{title}</title>
     </head>
     <body>
