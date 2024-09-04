@@ -5,6 +5,7 @@ import Footer from "../../components/Footer.astro";
 import Editor from "../../components/Editor.astro";
 import { GetLeafMetadata } from "../../database/leaves.ts";
 import { getSession } from "auth-astro/server";
+import NotebookEditor from "#components/NotebookEditor.astro";
 
 const session = await getSession(Astro.request);
 if (!session) return Astro.redirect("/404");
@@ -19,7 +20,7 @@ const leaf_metadata = leaf_id ? await GetLeafMetadata(leaf_id) : undefined;
 	</header>
 	<main>
 		<div>
-			<Editor metadata={leaf_metadata} />
+			<NotebookEditor metadata={leaf_metadata} />
 		</div>
 	</main>
 	<footer>

@@ -12,7 +12,10 @@
   "dependencies": {
     "@astrojs/check": "^0.4.1",
     "@astrojs/node": "^8.2.0",
+    "@astrojs/react": "^3.6.2",
     "@auth/core": "^0.18.6",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
     "astro": "^4.3.5",
     "auth-astro": "^4.1.1",
     "prosemirror-commands": "^1.5.2",
@@ -27,6 +30,8 @@
     "prosemirror-state": "^1.4.3",
     "prosemirror-unified": "^0.7.0",
     "prosemirror-view": "^1.32.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "remark-html": "^16.0.1",
     "typescript": "^5.3.3"
   },
