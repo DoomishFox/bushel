@@ -1,3 +1,5 @@
+import type { Notebook } from "./nbformat";
+
 export interface LeafDetails {
     id: string;
     path: string;
@@ -11,5 +13,5 @@ export const isLeafDetails = (value: LeafDetails): value is LeafDetails => !!val
 
 export interface Leaf {
     details: LeafDetails;
-    content: string;
+    content: Notebook;
 }

@@ -1,36 +1,60 @@
-import React, { useState } from "react"
-import type { LeafDetails } from "#database/leaf.ts";
+import React, { useState, useRef, StrictMode } from "react"
+import type { LeafDetails } from "#database/leaf.ts"
+import type { Cell } from "#database/nbformat.ts"
 import { Block } from "./Block.react"
+
+// TODO: figure out why this is *sometimes* clipping the last character???
+const splitInclusive = (data: string, char: string) => {
+    let segments = []
+    let prev_split = 0
+    for (let i = 0; i <= data.length; i++) {
+        if (data[i] == char) {
+            segments.push(data.slice(prev_split, i + 1));
+            prev_split = i + 1
+        }
+    }
+    segments.push(data.slice(prev_split));
+    return segments;
+}
 
 export const Notebook = (props: {
     metadata: LeafDetails,
-    paragraphs: string[],
+    cells: Cell[],
 }) => {
     const [meta, setMeta] = useState(props.metadata)
-    const [title, setTitle] = useState(meta.title)
-    const [paragraphs, setParagraphs] = useState(props.paragraphs)
+    const [cells, setCells] = useState(props.cells)
 
-    const handleBlockChange = (index: number, newText: string) => {
-        const updatedParagraphs = [...paragraphs]
-        updatedParagraphs[index] = newText
-        setParagraphs(updatedParagraphs)
+    const updateCellAt = (index: number, newCell: Cell) => {
+        setCells(cells.map((cell, i) => i == index ? newCell : cell))
     }
 
-    const removeBlockAt = (index: number) => {
-        const updatedParagraphs = [...paragraphs]
-        updatedParagraphs.splice(index, 1)
-        setParagraphs(updatedParagraphs)
+    const removeCellAt = (index: number) => {
+        setCells([
+            ...cells.slice(0, index),
+            ...cells.slice(index + 1)
+        ])
     }
 
-    const insertBlockAt = (index: number, type: string) => {
-        const updatedParagraphs = [...paragraphs]
-        updatedParagraphs.splice(index + 1, 0, "")
-        setParagraphs(updatedParagraphs)
+    const insertCellAt = (index: number, type: string) => {
+        const newCell: Cell = { cell_type: type, id: `abcd${(Math.random() * 100).toFixed(0)}`, metadata: {}, source: "" }
+        setCells([
+            ...cells.slice(0, index),
+            newCell,
+            ...cells.slice(index)
+        ])
     }
 
     const handleSaveClick = () => {
         console.log(meta)
-        alert(paragraphs)
+        const formattedCells = cells.map<Cell>(cell => (
+            {
+                ...cell,
+                source: Array.isArray(cell.source)
+                    ? cell.source
+                    : splitInclusive(cell.source, "\n")
+            }
+        ))
+        alert(JSON.stringify(formattedCells))
     }
 
     return (
@@ -65,16 +89,18 @@ export const Notebook = (props: {
                 />
             </div>
             <div style={{ marginTop: "1rem" }}>
-                {paragraphs.map((text, index) => (
+                {/* <StrictMode> */}
+                {cells.map((cell, index) => (
                     <Block
-                        key={index} index={index} // i hate that i have to do this
-                        text={text}
-                        onContentChange={(newText) => handleBlockChange(index, newText)}
-                        remove={() => removeBlockAt(index)}
-                        addBelow={(type) => insertBlockAt(index, type)}
+                        key={index + "-" + cell.id} index={index}
+                        cell={cell}
+                        onUpdate={(newCell) => updateCellAt(index, newCell)}
+                        onRemove={() => removeCellAt(index)}
+                        onAddBelow={(type) => insertCellAt(index + 1, type)}
                     />
                 ))}
+                {/* </StrictMode> */}
             </div>
         </div>
-    );
-};
+    )
+}

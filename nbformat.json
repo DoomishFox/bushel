@@ -1,0 +1,62 @@
+{
+    "metadata": {
+        "signature": "hex-digest"//, // used for authenticating unsafe outputs on load
+        // "kernel_info": { // if kernel_info is defined, its name field is required.
+        //     "name": "the name of the kernel"
+        // },
+        // "language_info": { // if language_info is defined, its name field is required.
+        //     "name": "the programming language of the kernel",
+        //     "version": "the version of the language",
+        //     "codemirror_mode": "The name of the codemirror mode to use [optional]"
+        // }
+    },
+    "nbformat": 5,
+    "nbformat_minor": 10,
+    "cells": [ // list of cell dictionaries, see below
+        // {
+        //     "cell_type": "type",
+        //     "id": "[alphanumeric string (including '-' and '_') between 1 and 64 characters]",
+        //     "metadata": {}, // ok to have arbitrary data
+        //     "source": "single string or [list, of, strings]",
+        //     "attachments": { // optional, only on markdown and raw. used for images referenced in markdown
+        //         "image.png": { "image/png": "base64-encoded-png-data" }
+        //     }
+        // }
+        {
+            "cell_type": "markdown",
+            "id": "abcd1",
+            "metadata": {},
+            "source": [
+                "first paragraph of text\n",
+                "\n",
+                "second paragraph of text"
+            ]
+        },
+        {
+            "cell_type": "code",
+            "id": "abcd2",
+            "execution_count": 0,
+            "metadata": {
+                "bushel": { // bushel specific metadata dict
+                    "language": "typescript",
+                    "filename": "[optional filename to display]",
+                    "url": "[optional source url]" // clickable, for referencing source material
+                }
+            },
+            "source": [
+                "from datetime import datetime\n",
+                "\n",
+                "print(datetime.now())\n"
+            ],
+            "outputs": []
+        },
+        {
+            "cell_type": "raw",
+            "abcd": "abcd3",
+            "metadata": {
+                "format": "mime/type"
+            },
+            "source": "[some nbformat output text]"
+        }
+    ]
+}
